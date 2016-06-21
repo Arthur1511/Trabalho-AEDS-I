@@ -1,0 +1,265 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+typedef struct Data{
+
+	int dia;
+	int mes;
+	int ano;
+}TData;
+
+
+typedef struct Evento{
+
+	int hora;
+	int minutos;
+	char descricao[100];
+}TEvento;
+
+typedef struct Evento_No{
+
+	TEvento evento;
+	struct Evento_No* baixo;
+}TEvento_No;
+
+typedef struct Data_No{
+
+	TData data;
+	struct Data_No* prox;
+	TEvento_No* evento;
+}TData_No;
+
+int verica_horario(TEvento *evento);
+TData_No* Inicializar_Agenda();
+TData Criar_Data();
+TEvento Criar_Evento();
+void Inserir_Evento(TData_No* lista);
+int verifica_data(TData t1);
+int verifica_horario(TEvento evento);
+
+
+
+TData_No* Inicializar_Agenda(){
+
+	TData_No* data = (TData_No*) malloc(sizeof(TData_No));
+	if (!data){
+		exit(1);
+	}
+
+	data->prox = NULL;
+	data->evento = NULL;
+
+	return data;
+}
+
+TData Criar_Data(){
+
+	int dia, mes, ano;
+
+	do{
+		printf("Insira o dia:");
+		getchar();
+		scanf("%d", &dia);
+		if (dia < 1 || dia > 31)
+		{
+			printf("\nDado incorretos\n");
+		}
+
+	}while(dia < 1 || dia > 31)
+
+	
+	do{
+		printf("\nInsira o mes:");
+		getchar();
+		scanf("%d", &mes);
+		if (mes < 1 || mes > 12)
+		{
+			printf("\nDado incorretos\n");
+		}
+
+	}while(mes < 1 || mes > 12)
+
+
+	do{
+		printf("\nInsira o ano:");
+		getchar();
+		scanf("%d", &ano);
+		if (ano < 0)
+		{
+			printf("\nDado incorretos\n");
+		}
+		
+	}while(ano < 0)
+
+	TData data;
+
+	data.dia = dia;
+	data.mes = mes;
+	data.ano = ano;
+
+	return data;
+}
+
+TEvento Criar_Evento(){
+
+	int hora, minutos;
+	char descricao[100];
+
+	printf("Insira a hora:");
+	getchar();
+	scanf("%d", &hora);
+
+	printf("\nInsira os minutos:");
+	getchar();
+	scanf("%d", &minutos);
+
+	printf("\nInsira a descricao");
+	getchar();
+	fgets(descricao,100,stdin);
+
+	TEvento evento;
+
+	evento.hora = hora;
+	evento.minutos = minutos;
+	strcpy(evento.descricao,descricao);
+
+	return evento;
+}
+
+void Inserir_Evento(TData_No* lista){
+
+	if(lista->prox == NULL){
+
+        TData_No* novo_data = (TData_No*) malloc(sizeof(TData_No));
+        if (!novo_data)
+            exit(1);
+
+        TEvento_No* novo_evento = (TEvento_No*) malloc(sizeof(TEvento_No));
+        if (!novo_evento)
+            exit(1);
+
+        novo_data->data = Criar_Data();
+        novo_data->prox = lista->prox;
+        lista->prox = novo_data;
+
+        novo_evento->evento = Criar_Evento();
+        novo_evento->baixo = NULL;
+        novo_data->evento = novo_evento;
+
+	}
+
+	else{
+
+		TData_No * novo_data = (TData_No*)malloc(sizeof(TData_No));	
+		if (!novo_data)
+            exit(1);
+
+        TEvento_No* novo_evento = (TEvento_No*) malloc(sizeof(TEvento_No));
+        if (!novo_evento)
+            exit(1);
+
+	    TData_No* anterior = lista;
+	    TData_No* p = lista->prox;
+	    TEvento_No* aux;
+
+		novo_data->data = Criar_Data();
+
+
+        novo_evento->evento = Criar_Evento();
+        novo_evento->baixo = NULL;
+        novo_data->evento = novo_evento;
+
+
+	 // Verificar se data existe;
+
+        for( p = lista->prox ; p != NULL ; p = p->prox){
+
+        	if (verifica_data(p->data) == verifica_data(novo_data->data)){
+
+        		for(aux = p->evento->baixo ; aux!= NULL; aux = aux -> baixo){
+
+	        		if ((aux->baixo->evento.hora == novo_evento->evento.hora) && (aux->baixo->evento.minutos == novo_evento->evento.minutos)){
+	        			printf("\nJa possui evento neste horario.\n");
+	        		}
+	        	}
+	        	
+
+	        	TEvento_No* ant = p->evento;
+		    	TEvento_No* ptr = p->evento->baixo;
+
+		    	while(ptr->baixo != NULL && verifica_horario(ptr->evento) < verifica_horario(novo_evento->evento)){
+					ant = ptr;
+					ptr = ptr->baixo;
+				}	
+
+				novo_evento->baixo = ant->baixo;
+				ant->baixo = novo_evento;
+
+	        		
+	        	
+
+        	}
+
+        }
+
+	 // Se data nao existe insere ordenado;
+
+
+	 	while(p != NULL && verifica_data(anterior->data) < verifica_data(novo_data->data)){
+			anterior = p;
+			p = p->prox;
+		}
+
+		novo_data->prox = anterior->prox;
+		anterior->prox = novo_data;
+		
+	}
+
+	
+
+	
+
+
+	/*TData_No* novo_data = (TData_No*) malloc(sizeof(TData_No));
+	if (!novo_data)
+		exit(1);
+
+
+	TEvento_No* novo_evento = (TEvento_No*) malloc(sizeof(TEvento_No));
+	if (!novo_evento)
+		exit(1);
+
+	novo_data->data = Criar_Data();
+	novo_data->prox = data_evento->prox;
+	data_evento->prox = novo_data;
+
+	novo_evento->evento = Criar_Evento();
+	novo_evento->baixo = NULL;
+*/
+}
+
+int verifica_data(TData t){
+
+	
+	return t.ano * 10000 + t.mes * 100 + t.dia
+
+	/*fica assim: 	20060105
+					20060104
+					20050122
+
+	/*if (t.mes-1 == 2){
+
+	}
+	if (t.mes-1 == 4 || t.mes-1 == 6 || t.mes-1 == 9 || t.mes-1 == 11){
+
+	}
+	else{
+
+	}*/
+}
+
+int verifica_horario(TEvento evento){
+
+	return evento.hora*60 + evento.minutos;
+}
